@@ -59,10 +59,10 @@
 
 
   <label for="parol">Password</label><br>
-  <input type="password" name="parol" class="input" required><br>
+  <input type="password" name="parol" class="input" required value="<?php echo isset($_POST['parol']) ? htmlspecialchars($_POST['parol']) : ''; ?>"><br>
 
   <label for="confirm_parol">Confirm Password</label><br>
-  <input type="password" name="confirm_parol" class="input" required><br>
+  <input type="password" name="confirm_parol" class="input" required value="<?php echo isset($_POST['confirm_parol']) ? htmlspecialchars($_POST['confirm_parol']) : ''; ?>"><br>
 
   <label for="bday">Date of Birth</label><br>
   <input type="date" name="bday" required value="<?php echo isset($_POST['bday']) ? htmlspecialchars($_POST['bday']) : ''; ?>"><br>
@@ -76,6 +76,27 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+
+function caesar_encrypt($text, $shift) {
+  $encrypted_text = "";
+  $length = strlen($text);
+  for ($i = 0; $i < $length; $i++) {
+      $char = $text[$i];
+      if (ctype_alpha($char)) {
+          $ascii = ord($char);
+          if ($char >= 'a' && $char <= 'z') {
+              $encrypted_ascii = (($ascii - ord('a') + $shift) % 26) + ord('a');
+          } elseif ($char >= 'A' && $char <= 'Z') {
+              $encrypted_ascii = (($ascii - ord('A') + $shift) % 26) + ord('A');
+          }
+          $encrypted_text .= chr($encrypted_ascii);
+      } else {
+          $encrypted_text .= $char;
+      }
+  }
+  return $encrypted_text;
+}
 
 // Connect to the database
 $con = mysqli_connect('localhost', 'root', '', 'abc');
@@ -124,6 +145,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['IIN'] = "IIN is required.";
     }
 
+    // Validate Phone Number
+    function validatePhoneNumber($phone) {
+      // Regular expression to check phone number format
+      $pattern = "/^\+?[0-9]{1,4}[-. ]?([0-9]{1,3}?)|[0-9]{1,3}[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,9}$/";
+  
+      if (preg_match($pattern, $phone)) {
+          return true;
+      } else {
+          return false;
+      }
+  }
+  if (!empty($_POST['tel'])) {
+    $bday = new DateTime($_POST['bday']);
+    $twoYearsAgo = new DateTime('-2 years');
+    if (!validatePhoneNumber($_POST['tel'])) {
+        $errors['bday'] = "Incorrect format of telephone number";
+    }
+} else {
+    $errors['tel'] = "Telephone number is required.";
+}
+
     // Validate date of birth (at least 2 years ago)
     if (!empty($_POST['bday'])) {
         $bday = new DateTime($_POST['bday']);
@@ -163,6 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         echo "</ul>";
     } else {
+      $parol = caesar_encrypt($parol, 3);
       $sql = "SELECT * FROM students WHERE ИИН = '$iin'";
     $result = mysqli_query($con, $sql);
     
