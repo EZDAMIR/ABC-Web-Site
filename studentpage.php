@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Login 2</title>
@@ -34,8 +34,28 @@
     </form>
 
     <?php
+    function caesar_decrypt($text, $shift) {
+        $decryptedText = ''; // Initialize an empty string to store the decrypted message
+        $length = strlen($text);
+    
+        for ($i = 0; $i < $length; $i++) {
+            $symbol = ord($text[$i]); // Get the ASCII code of the current character
+            $adjustedShift = $shift >= 0 ? $shift : 26 + $shift; // Adjust the shift for negative values
+    
+            $decryptedSymbol = $symbol - $adjustedShift; // Calculate the decrypted character's ASCII code
+            if ($decryptedSymbol < 0) {
+                $decryptedSymbol += 26; // Handle wrapping around the alphabet
+            }
+    
+            $decryptedText .= chr($decryptedSymbol); // Append the decrypted character to the decryptedText string
+        }
+    
+        return $decryptedText; // Return the decrypted message
+    }
     if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['login']) && isset($_GET['table'])) {
         
+        $shift = 3;
+
         $servername = "localhost";
         $username = "root";
         $password = "";
@@ -76,6 +96,9 @@
                 while ($row_data = $result_data->fetch_assoc()) {
                     echo "<tr>";
                     foreach ($row_data as $key => $value) {
+                        if ($key === "Пароль") {
+                            $value = caesar_decrypt($value, $shift); // Replace $shift with your desired shift value
+                        }
                         echo "<td>" . $value . "</td>";
                     }
                     echo "</tr>";
@@ -143,4 +166,3 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['login']) && isset($_GET[
 </div>
 </body>
 </html>
-

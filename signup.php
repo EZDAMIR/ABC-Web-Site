@@ -59,10 +59,10 @@
 
 
   <label for="parol">Password</label><br>
-  <input type="password" name="parol" class="input" required value="<?php echo isset($_POST['parol']) ? htmlspecialchars($_POST['parol']) : ''; ?>"><br>
+  <input type="password" name="parol" class="input" required ><br>
 
   <label for="confirm_parol">Confirm Password</label><br>
-  <input type="password" name="confirm_parol" class="input" required value="<?php echo isset($_POST['confirm_parol']) ? htmlspecialchars($_POST['confirm_parol']) : ''; ?>"><br>
+  <input type="password" name="confirm_parol" class="input" required><br>
 
   <label for="bday">Date of Birth</label><br>
   <input type="date" name="bday" required value="<?php echo isset($_POST['bday']) ? htmlspecialchars($_POST['bday']) : ''; ?>"><br>
@@ -90,13 +90,17 @@ function caesar_encrypt($text, $shift) {
           } elseif ($char >= 'A' && $char <= 'Z') {
               $encrypted_ascii = (($ascii - ord('A') + $shift) % 26) + ord('A');
           }
-          $encrypted_text .= chr($encrypted_ascii);
+      } elseif (ctype_digit($char)) {
+          $encrypted_ascii = (($char - '0' + $shift) % 10) + '0';
       } else {
           $encrypted_text .= $char;
+          continue; // Skip further processing for non-alphanumeric characters
       }
+      $encrypted_text .= chr($encrypted_ascii);
   }
   return $encrypted_text;
 }
+
 
 // Connect to the database
 $con = mysqli_connect('localhost', 'root', '', 'abc');

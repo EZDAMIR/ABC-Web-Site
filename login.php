@@ -59,7 +59,7 @@
 					submitButton.setAttribute("disabled", "");
 				}
 			});
-		</script>
+</script>
 
 <?php
 function caesar_decrypt($text, $shift) {
@@ -80,6 +80,28 @@ function caesar_decrypt($text, $shift) {
 
     return $decryptedText; // Return the decrypted message
 }
+function caesar_encrypt($text, $shift) {
+    $encrypted_text = "";
+    $length = strlen($text);
+    for ($i = 0; $i < $length; $i++) {
+        $char = $text[$i];
+        if (ctype_alpha($char)) {
+            $ascii = ord($char);
+            if ($char >= 'a' && $char <= 'z') {
+                $encrypted_ascii = (($ascii - ord('a') + $shift) % 26) + ord('a');
+            } elseif ($char >= 'A' && $char <= 'Z') {
+                $encrypted_ascii = (($ascii - ord('A') + $shift) % 26) + ord('A');
+            }
+        } elseif (ctype_digit($char)) {
+            $encrypted_ascii = (($char - '0' + $shift) % 10) + '0';
+        } else {
+            $encrypted_text .= $char;
+            continue; // Skip further processing for non-alphanumeric characters
+        }
+        $encrypted_text .= chr($encrypted_ascii);
+    }
+    return $encrypted_text;
+  }
 
 
 if (isset($_POST['submit'])) {
@@ -90,32 +112,26 @@ if (isset($_POST['submit'])) {
         $login = $_POST['login'];
         $user_psw = $_POST['parol'];
         $shift = 3; // Caesar cipher shift value, adjust as needed
-
-        // Retrieve the encrypted password from the database
-        $sql = "SELECT ИИН, Пароль FROM students WHERE ИИН = '$login'";
-        $result = mysqli_query($con, $sql);
-
-        if (!$result) {
-            echo "Error executing query: " . mysqli_error($con);
-        } else {
-            if (mysqli_num_rows($result) > 0) {
-                $row = mysqli_fetch_assoc($result);
-                $stored_psw = caesar_decrypt($row['Пароль'], $shift); // Decrypt the stored password
-                // Check if the decrypted stored password matches the user-entered password
-                if ($user_psw === $stored_psw) {
-                    header("Location: studentpage.php?login=" . urlencode($login));
-                    exit;
-                } else {
-                    header("Location: login.php?error=$stored_psw");
-                    exit;
-                }
+            $psw = caesar_encrypt($user_psw, $shift);
+            $sql = "SELECT ИИН, Пароль FROM students WHERE ИИН = '$login' AND Пароль='$psw'";
+            $result = mysqli_query($con, $sql);
+            if (!$result) {
+                echo "Error executing query: " . mysqli_error($con);
             } else {
-                header("Location: login.php?error=user_not_found");
-                exit;
+                
+                if (mysqli_num_rows($result) > 0) {
+                    
+                    header("Location: studentpage.php?login=" . urlencode($login));
+                    
+                    exit;}
+                 else {
+                    header("Location: login.php?error=incorrect_password_$psw");
+                    
+                }
             }
         }
     }
-}
+
 ?>
 
 
